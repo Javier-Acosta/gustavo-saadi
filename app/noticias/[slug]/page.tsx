@@ -1,13 +1,70 @@
 "use client";
 
 import Link from "next/link";
-import { getNewsSlug } from "@/app/lib/site-config";
-import { useSiteConfig } from "@/app/lib/use-site-config";
+import { useSearchParams } from "next/navigation";
+import { getNewsSlug, getNewsSlugBase, getNewsSlugWithoutIndex } from "@/app/lib/site-config";
+import { useSiteConfigState } from "@/app/lib/use-site-config";
+
+function getSlugIndex(slug: string) {
+  const match = slug.match(/-(\d+)$/);
+  return match ? Number(match[1]) - 1 : -1;
+}
+
+function getSlugTokens(slug: string) {
+  return getNewsSlugWithoutIndex(slug)
+    .split("-")
+    .filter((token) => token.length > 2);
+}
+
+function slugLooksLikeTitle(slug: string, title: string) {
+  const titleSlug = getNewsSlugBase(title);
+  const requestedTokens = getSlugTokens(slug);
+  if (requestedTokens.length === 0) {
+    return false;
+  }
+
+  const matches = requestedTokens.filter((token) => titleSlug.includes(token)).length;
+  return matches >= Math.min(4, requestedTokens.length);
+}
+
+function normalizeTitle(title: string) {
+  return getNewsSlugBase(title);
+}
 
 export default function NoticiaDetallePage({ params }: { params: { slug: string } }) {
-  const config = useSiteConfig();
-  const index = config.news.findIndex((item, itemIndex) => getNewsSlug(item.title, itemIndex) === params.slug);
+  const { config, isLoaded } = useSiteConfigState();
+  const searchParams = useSearchParams();
+  const requestedTitle = searchParams.get("title") ?? "";
+  const requestedTitleSlug = normalizeTitle(requestedTitle);
+  const requestedSlugBase = getNewsSlugWithoutIndex(params.slug);
+  const exactOrTitleIndex = config.news.findIndex(
+    (item, itemIndex) =>
+      (requestedTitleSlug.length > 0 && normalizeTitle(item.title) === requestedTitleSlug) ||
+      getNewsSlug(item.title, itemIndex) === params.slug ||
+      getNewsSlugBase(item.title) === requestedSlugBase ||
+      slugLooksLikeTitle(params.slug, item.title),
+  );
+  const slugIndex = getSlugIndex(params.slug);
+  const index =
+    exactOrTitleIndex >= 0
+      ? exactOrTitleIndex
+      : slugIndex >= 0 && slugIndex < config.news.length
+        ? slugIndex
+        : -1;
   const item = index >= 0 ? config.news[index] : null;
+
+  if (!item && !isLoaded) {
+    return (
+      <main className="min-h-screen px-5 py-10" style={{ backgroundColor: config.colors.pageBackground, color: config.colors.text }}>
+        <div className="mx-auto max-w-4xl">
+          <Link className="border border-black/15 px-4 py-2 text-sm font-black" href="/noticias">
+            Volver a noticias
+          </Link>
+          <h1 className="mt-10 text-4xl font-black">Cargando noticia...</h1>
+        </div>
+      </main>
+    );
+  }
 
   if (!item) {
     return (

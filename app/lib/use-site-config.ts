@@ -54,3 +54,41 @@ export function useSiteConfig() {
 
   return config;
 }
+
+export function useSiteConfigState() {
+  const [config, setConfig] = useState(getStoredConfig);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadConfig() {
+      try {
+        const response = await fetch("/api/site-config", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Config request failed.");
+        }
+
+        const nextConfig = mergeSiteConfig(await response.json());
+        if (!ignore) {
+          setConfig(nextConfig);
+          window.localStorage.setItem("candidate-site-config", JSON.stringify(nextConfig));
+          setIsLoaded(true);
+        }
+      } catch {
+        if (!ignore) {
+          setConfig(getStoredConfig());
+          setIsLoaded(true);
+        }
+      }
+    }
+
+    void loadConfig();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  return { config, isLoaded };
+}

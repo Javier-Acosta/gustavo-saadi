@@ -145,12 +145,24 @@ export function mergeSiteConfig(config: Partial<SiteConfig> | null | undefined):
 }
 
 export function getNewsSlug(title: string, index: number) {
-  const slug = title
+  const slug = getNewsSlugBase(title);
+
+  return `${slug || "noticia"}-${index + 1}`;
+}
+
+export function getNewsSlugBase(title: string) {
+  return title
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
 
-  return `${slug || "noticia"}-${index + 1}`;
+export function getNewsSlugWithoutIndex(slug: string) {
+  return slug.replace(/-\d+$/, "");
+}
+
+export function getNewsHref(title: string, index: number) {
+  return `/noticias/${getNewsSlug(title, index)}?title=${encodeURIComponent(title)}`;
 }

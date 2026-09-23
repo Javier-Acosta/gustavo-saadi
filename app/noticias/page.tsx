@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSiteConfig } from "@/app/lib/use-site-config";
-import { getNewsSlug } from "@/app/lib/site-config";
+import { getNewsHref } from "@/app/lib/site-config";
 
 export default function NoticiasPage() {
   const config = useSiteConfig();
@@ -30,7 +30,7 @@ export default function NoticiasPage() {
             <Link
               key={`${item.date}-${item.title}-${index}`}
               className="group overflow-hidden border border-black/10 bg-white transition hover:-translate-y-1 hover:shadow-lg"
-              href={`/noticias/${getNewsSlug(item.title, index)}`}
+              href={getNewsHref(item.title, index)}
             >
               {item.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element

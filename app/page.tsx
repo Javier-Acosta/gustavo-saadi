@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSiteConfig } from "@/app/lib/use-site-config";
-import { getNewsSlug } from "@/app/lib/site-config";
+import { getNewsHref } from "@/app/lib/site-config";
 
 function getVideoEmbedUrl(url: string) {
   if (/facebook\.com|fb\.watch/i.test(url)) {
@@ -191,7 +191,7 @@ export default function Home() {
               <Link
                 key={`${item.title}-${index}`}
                 className="group overflow-hidden rounded border border-black/10 bg-white transition hover:-translate-y-1 hover:shadow-lg"
-                href={`/noticias/${getNewsSlug(item.title, index)}`}
+                href={getNewsHref(item.title, index)}
               >
                 {item.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
