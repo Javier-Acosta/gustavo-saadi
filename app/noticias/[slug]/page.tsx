@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { getNewsSlug, getNewsSlugBase, getNewsSlugWithoutIndex } from "@/app/lib/site-config";
 import { useSiteConfigState } from "@/app/lib/use-site-config";
 
@@ -27,24 +27,24 @@ function slugLooksLikeTitle(slug: string, title: string) {
   return matches >= Math.min(4, requestedTokens.length);
 }
 
-function normalizeTitle(title: string) {
-  return getNewsSlugBase(title);
-}
-
-export default function NoticiaDetallePage({ params }: { params: { slug: string } }) {
+export default function NoticiaDetallePage() {
   const { config, isLoaded } = useSiteConfigState();
-  const searchParams = useSearchParams();
-  const requestedTitle = searchParams.get("title") ?? "";
-  const requestedTitleSlug = normalizeTitle(requestedTitle);
-  const requestedSlugBase = getNewsSlugWithoutIndex(params.slug);
+  const params = useParams<{ slug: string }>();
+  const slug = params.slug ?? "";
+  const requestedTitleSlug =
+    typeof window === "undefined"
+      ? ""
+      : getNewsSlugBase(new URLSearchParams(window.location.search).get("title") ?? "");
+  const requestedSlugBase = getNewsSlugWithoutIndex(slug);
+
   const exactOrTitleIndex = config.news.findIndex(
     (item, itemIndex) =>
-      (requestedTitleSlug.length > 0 && normalizeTitle(item.title) === requestedTitleSlug) ||
-      getNewsSlug(item.title, itemIndex) === params.slug ||
+      (requestedTitleSlug.length > 0 && getNewsSlugBase(item.title) === requestedTitleSlug) ||
+      getNewsSlug(item.title, itemIndex) === slug ||
       getNewsSlugBase(item.title) === requestedSlugBase ||
-      slugLooksLikeTitle(params.slug, item.title),
+      slugLooksLikeTitle(slug, item.title),
   );
-  const slugIndex = getSlugIndex(params.slug);
+  const slugIndex = getSlugIndex(slug);
   const index =
     exactOrTitleIndex >= 0
       ? exactOrTitleIndex
