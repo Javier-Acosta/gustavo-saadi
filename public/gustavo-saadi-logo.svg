@@ -1,0 +1,9 @@
+<svg width="420" height="112" viewBox="0 0 420 112" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="420" height="112" rx="16" fill="#F7F3EA"/>
+  <circle cx="58" cy="56" r="34" fill="#116A4A"/>
+  <path d="M43 59C48 48 57 42 70 41C65 49 57 55 43 59Z" fill="#F0C15A"/>
+  <path d="M44 68C58 66 69 60 77 50C78 66 66 76 50 76C47 76 45 73 44 68Z" fill="#E94B3C"/>
+  <text x="108" y="51" fill="#1D1B18" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800">Gustavo</text>
+  <text x="108" y="84" fill="#116A4A" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800">Saadi</text>
+  <text x="245" y="84" fill="#1D1B18" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" letter-spacing="2">CATAMARCA</text>
+</svg>

@@ -1,46 +1,8 @@
 "use client";
 
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-
-type NewsItem = {
-  title: string;
-  date: string;
-  summary: string;
-};
-
-type VideoItem = {
-  title: string;
-  youtubeUrl: string;
-};
-
-type SocialLink = {
-  name: string;
-  url: string;
-  logo: string;
-};
-
-type SiteConfig = {
-  candidateName: string;
-  slogan: string;
-  logoUrl: string;
-  bannerVideoUrl: string;
-  footerReelUrl: string;
-  videos: VideoItem[];
-  news: NewsItem[];
-  socials: SocialLink[];
-};
-
-const defaultConfig: SiteConfig = {
-  candidateName: "Gustavo Martinez",
-  slogan: "Una ciudad ordenada, cercana y con oportunidades reales.",
-  logoUrl: "",
-  bannerVideoUrl: "",
-  footerReelUrl: "",
-  videos: [{ title: "Mensaje de campana", youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }],
-  news: [{ title: "Recorrida por el centro comercial", date: "22 Sep 2026", summary: "Medidas para acompanhar a comerciantes locales." }],
-  socials: [{ name: "Instagram", url: "https://instagram.com", logo: "IG" }],
-};
+import { defaultConfig, mergeSiteConfig, SiteConfig } from "@/app/lib/site-config";
 
 function getStoredConfig() {
   if (typeof window === "undefined") {
@@ -53,7 +15,7 @@ function getStoredConfig() {
   }
 
   try {
-    return { ...defaultConfig, ...JSON.parse(stored) } as SiteConfig;
+    return mergeSiteConfig(JSON.parse(stored) as Partial<SiteConfig>);
   } catch {
     return defaultConfig;
   }
@@ -85,13 +47,63 @@ function Field({
 
 export default function AdminPage() {
   const [config, setConfig] = useState(getStoredConfig);
-  const [status, setStatus] = useState("Configuracion cargada");
+  const [status, setStatus] = useState("Cargando configuracion");
 
   const bannerPreview = useMemo(() => config.bannerVideoUrl.trim(), [config.bannerVideoUrl]);
 
-  function saveConfig() {
-    window.localStorage.setItem("candidate-site-config", JSON.stringify(config));
-    setStatus("Cambios guardados");
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadConfig() {
+      try {
+        const response = await fetch("/api/site-config", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Config request failed.");
+        }
+
+        const nextConfig = mergeSiteConfig(await response.json());
+        if (!ignore) {
+          setConfig(nextConfig);
+          window.localStorage.setItem("candidate-site-config", JSON.stringify(nextConfig));
+          setStatus("Configuracion cargada desde PocketBase");
+        }
+      } catch {
+        if (!ignore) {
+          setConfig(getStoredConfig());
+          setStatus("Usando respaldo local");
+        }
+      }
+    }
+
+    void loadConfig();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  async function saveConfig() {
+    setStatus("Guardando cambios");
+
+    try {
+      const response = await fetch("/api/site-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+
+      if (!response.ok) {
+        throw new Error("Save request failed.");
+      }
+
+      const nextConfig = mergeSiteConfig(await response.json());
+      setConfig(nextConfig);
+      window.localStorage.setItem("candidate-site-config", JSON.stringify(nextConfig));
+      setStatus("Cambios guardados en PocketBase");
+    } catch {
+      window.localStorage.setItem("candidate-site-config", JSON.stringify(config));
+      setStatus("PocketBase no respondio; cambios guardados localmente");
+    }
   }
 
   function updateVideoFile(event: ChangeEvent<HTMLInputElement>, target: "bannerVideoUrl" | "footerReelUrl") {

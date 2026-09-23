@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sitio de candidato",
-  description: "Pagina simple para candidato politico con panel administrador",
+  title: "Gustavo Saadi",
+  description: "Sitio de Gustavo Saadi para Catamarca con noticias, videos y redes sociales",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
