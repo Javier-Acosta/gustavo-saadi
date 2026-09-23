@@ -116,3 +116,14 @@ export function mergeSiteConfig(config: Partial<SiteConfig> | null | undefined):
     socials: config?.socials ?? defaultConfig.socials,
   };
 }
+
+export function getNewsSlug(title: string, index: number) {
+  const slug = title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return `${slug || "noticia"}-${index + 1}`;
+}

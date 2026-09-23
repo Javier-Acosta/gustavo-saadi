@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSiteConfig } from "@/app/lib/use-site-config";
+import { getNewsSlug } from "@/app/lib/site-config";
 
 function getVideoEmbedUrl(url: string) {
   if (/facebook\.com|fb\.watch/i.test(url)) {
@@ -186,18 +187,22 @@ export default function Home() {
             </Link>
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {latestNews.map((item) => (
-              <article key={item.title} className="overflow-hidden rounded border border-black/10 bg-white">
+            {latestNews.map((item, index) => (
+              <Link
+                key={`${item.title}-${index}`}
+                className="group overflow-hidden rounded border border-black/10 bg-white transition hover:-translate-y-1 hover:shadow-lg"
+                href={`/noticias/${getNewsSlug(item.title, index)}`}
+              >
                 {item.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={item.imageUrl} alt="" className="aspect-video w-full object-cover" />
                 ) : null}
                 <div className="p-5">
                   <time className="text-sm font-semibold" style={{ color: config.colors.accent }}>{item.date}</time>
-                  <h3 className="mt-3 text-xl font-black">{item.title}</h3>
+                  <h3 className="mt-3 text-xl font-black group-hover:underline">{item.title}</h3>
                   <p className="mt-3 leading-7 text-black/70">{item.summary}</p>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>

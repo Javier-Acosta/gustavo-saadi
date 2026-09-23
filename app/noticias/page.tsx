@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSiteConfig } from "@/app/lib/use-site-config";
+import { getNewsSlug } from "@/app/lib/site-config";
 
 export default function NoticiasPage() {
   const config = useSiteConfig();
@@ -25,8 +26,12 @@ export default function NoticiasPage() {
         </header>
 
         <section className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {config.news.map((item) => (
-            <article key={`${item.date}-${item.title}`} className="overflow-hidden border border-black/10 bg-white">
+          {config.news.map((item, index) => (
+            <Link
+              key={`${item.date}-${item.title}-${index}`}
+              className="group overflow-hidden border border-black/10 bg-white transition hover:-translate-y-1 hover:shadow-lg"
+              href={`/noticias/${getNewsSlug(item.title, index)}`}
+            >
               {item.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={item.imageUrl} alt="" className="aspect-video w-full object-cover" />
@@ -35,10 +40,10 @@ export default function NoticiasPage() {
                 <time className="text-sm font-bold" style={{ color: config.colors.accent }}>
                   {item.date}
                 </time>
-                <h2 className="mt-3 text-2xl font-black leading-8">{item.title}</h2>
+                <h2 className="mt-3 text-2xl font-black leading-8 group-hover:underline">{item.title}</h2>
                 <p className="mt-3 leading-7 text-black/70">{item.summary}</p>
               </div>
-            </article>
+            </Link>
           ))}
         </section>
       </div>
