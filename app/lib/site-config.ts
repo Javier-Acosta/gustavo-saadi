@@ -19,8 +19,20 @@ export type SiteConfig = {
   candidateName: string;
   slogan: string;
   logoUrl: string;
+  footerLogoUrl: string;
+  footerTitle: string;
+  footerText: string;
   bannerVideoUrl: string;
   footerReelUrl: string;
+  colors: {
+    pageBackground: string;
+    text: string;
+    headerBackground: string;
+    primary: string;
+    accent: string;
+    footerBackground: string;
+    footerText: string;
+  };
   videos: VideoItem[];
   news: NewsItem[];
   socials: SocialLink[];
@@ -30,8 +42,20 @@ export const defaultConfig: SiteConfig = {
   candidateName: "Gustavo Saadi",
   slogan: "Catamarca con trabajo, cercania e igualdad de oportunidades.",
   logoUrl: "/gustavo-saadi-logo.svg",
+  footerLogoUrl: "/gustavo-saadi-logo.svg",
+  footerTitle: "Gustavo Saadi",
+  footerText: "Catamarca con trabajo, cercania e igualdad de oportunidades.",
   bannerVideoUrl: "",
   footerReelUrl: "",
+  colors: {
+    pageBackground: "#f7f3ea",
+    text: "#1d1b18",
+    headerBackground: "#f7f3ea",
+    primary: "#116a4a",
+    accent: "#b02a2a",
+    footerBackground: "#1d1b18",
+    footerText: "#ffffff",
+  },
   videos: [
     {
       title: "Mensaje de campana",
@@ -67,6 +91,10 @@ export function mergeSiteConfig(config: Partial<SiteConfig> | null | undefined):
   return {
     ...defaultConfig,
     ...config,
+    colors: {
+      ...defaultConfig.colors,
+      ...config?.colors,
+    },
     videos: config?.videos ?? defaultConfig.videos,
     news: config?.news ?? defaultConfig.news,
     socials: config?.socials ?? defaultConfig.socials,
