@@ -2,6 +2,7 @@ export type NewsItem = {
   title: string;
   date: string;
   summary: string;
+  body: string;
 };
 
 export type VideoItem = {
@@ -76,12 +77,16 @@ export const defaultConfig: SiteConfig = {
       date: "22 Sep 2026",
       summary:
         "El equipo presento medidas para simplificar tramites y acompanar a comerciantes locales.",
+      body:
+        "Durante la recorrida se relevaron las principales necesidades del sector comercial y se presentaron propuestas para mejorar la atencion municipal, simplificar tramites y fortalecer la actividad economica local.",
     },
     {
       title: "Nuevo plan de seguridad barrial",
       date: "19 Sep 2026",
       summary:
         "La propuesta combina iluminacion, prevencion y coordinacion directa con instituciones vecinales.",
+      body:
+        "El plan propone reforzar la iluminacion, mejorar la coordinacion territorial y trabajar con instituciones vecinales para prevenir conflictos y acercar respuestas concretas a cada barrio.",
     },
   ],
   socials: [
@@ -100,7 +105,10 @@ export function mergeSiteConfig(config: Partial<SiteConfig> | null | undefined):
       ...config?.colors,
     },
     videos: config?.videos ?? defaultConfig.videos,
-    news: config?.news ?? defaultConfig.news,
+    news: (config?.news ?? defaultConfig.news).map((item) => ({
+      ...item,
+      body: item.body ?? item.summary,
+    })),
     socials: config?.socials ?? defaultConfig.socials,
   };
 }

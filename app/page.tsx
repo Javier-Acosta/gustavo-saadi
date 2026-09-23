@@ -1,24 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { defaultConfig, mergeSiteConfig, SiteConfig } from "@/app/lib/site-config";
-
-function getStoredConfig() {
-  if (typeof window === "undefined") {
-    return defaultConfig;
-  }
-
-  const stored = window.localStorage.getItem("candidate-site-config");
-  if (!stored) {
-    return defaultConfig;
-  }
-
-  try {
-    return mergeSiteConfig(JSON.parse(stored) as Partial<SiteConfig>);
-  } catch {
-    return defaultConfig;
-  }
-}
+import Link from "next/link";
+import { useSiteConfig } from "@/app/lib/use-site-config";
 
 function getYoutubeEmbedUrl(url: string) {
   const match = url.match(
@@ -58,41 +41,12 @@ function getYoutubeBannerUrl(url: string) {
 }
 
 export default function Home() {
-  const [config, setConfig] = useState(getStoredConfig);
-
-  useEffect(() => {
-    let ignore = false;
-
-    async function loadConfig() {
-      try {
-        const response = await fetch("/api/site-config", { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error("Config request failed.");
-        }
-
-        const nextConfig = mergeSiteConfig(await response.json());
-        if (!ignore) {
-          setConfig(nextConfig);
-          window.localStorage.setItem("candidate-site-config", JSON.stringify(nextConfig));
-        }
-      } catch {
-        if (!ignore) {
-          setConfig(getStoredConfig());
-        }
-      }
-    }
-
-    void loadConfig();
-
-    return () => {
-      ignore = true;
-    };
-  }, []);
-
+  const config = useSiteConfig();
   const bannerVideo = config.bannerVideoUrl.trim();
   const bannerYoutubeUrl = getYoutubeBannerUrl(bannerVideo);
   const footerReel = config.footerReelUrl.trim();
   const footerLogo = config.footerLogoUrl.trim() || config.logoUrl.trim();
+  const latestNews = config.news.slice(0, 6);
 
   return (
     <main
@@ -205,10 +159,17 @@ export default function Home() {
 
       <section id="noticias" className="bg-white py-16">
         <div className="mx-auto max-w-6xl px-5">
-          <p className="text-sm font-bold uppercase tracking-[0.18em]" style={{ color: config.colors.primary }}>Noticias</p>
-          <h2 className="mt-2 text-3xl font-black">Ultimas novedades</h2>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.18em]" style={{ color: config.colors.primary }}>Noticias</p>
+              <h2 className="mt-2 text-3xl font-black">Ultimas novedades</h2>
+            </div>
+            <Link className="border border-black/15 px-4 py-2 text-sm font-black" href="/noticias">
+              Ver todo
+            </Link>
+          </div>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {config.news.map((item) => (
+            {latestNews.map((item) => (
               <article key={item.title} className="rounded border border-black/10 p-5">
                 <time className="text-sm font-semibold" style={{ color: config.colors.accent }}>{item.date}</time>
                 <h3 className="mt-3 text-xl font-black">{item.title}</h3>

@@ -45,6 +45,33 @@ function Field({
   );
 }
 
+function TextAreaField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  rows = 5,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  rows?: number;
+}) {
+  return (
+    <label className="grid gap-2 text-sm font-bold text-[#25211d]">
+      {label}
+      <textarea
+        className="resize-y border border-[#d9d9d4] bg-white px-3 py-2 font-normal text-[#25211d] outline-none focus:border-[#316c7a]"
+        value={value}
+        placeholder={placeholder}
+        rows={rows}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </label>
+  );
+}
+
 function ColorField({
   label,
   value,
@@ -456,16 +483,28 @@ export default function AdminPage() {
             <section className="border border-[#d9d9d4] bg-[#fbfbf8] p-6">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-2xl font-black">Noticias</h2>
-                <button className="bg-[#22566b] px-3 py-2 text-sm font-black text-white" onClick={() => setConfig({ ...config, news: [...config.news, { title: "", date: "", summary: "" }] })}>
+                <button className="bg-[#22566b] px-3 py-2 text-sm font-black text-white" onClick={() => setConfig({ ...config, news: [{ title: "", date: "", summary: "", body: "" }, ...config.news] })}>
                   Agregar
                 </button>
               </div>
               <div className="mt-5 grid gap-4">
                 {config.news.map((item, index) => (
                   <div key={index} className="grid gap-3 border border-[#d9d9d4] p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#ff6b14]">
+                        Noticia {index + 1}
+                      </p>
+                      <button
+                        className="border border-[#d9d9d4] px-3 py-1 text-xs font-black text-[#22566b]"
+                        onClick={() => setConfig({ ...config, news: config.news.filter((_, itemIndex) => itemIndex !== index) })}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                     <Field label="Titulo" value={item.title} onChange={(title) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, title } : newsItem)) })} />
                     <Field label="Fecha" value={item.date} onChange={(date) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, date } : newsItem)) })} />
-                    <Field label="Resumen" value={item.summary} onChange={(summary) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, summary } : newsItem)) })} />
+                    <TextAreaField label="Resumen" value={item.summary} rows={3} onChange={(summary) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, summary } : newsItem)) })} />
+                    <TextAreaField label="Cuerpo de noticia" value={item.body} rows={8} onChange={(body) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, body } : newsItem)) })} placeholder="Desarrollo completo de la noticia..." />
                   </div>
                 ))}
               </div>
