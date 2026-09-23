@@ -2,7 +2,7 @@
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { defaultConfig, mergeSiteConfig, SiteConfig } from "@/app/lib/site-config";
+import { defaultConfig, mergeSiteConfig, NewsItem, SiteConfig } from "@/app/lib/site-config";
 
 function getStoredConfig() {
   if (typeof window === "undefined") {
@@ -198,6 +198,8 @@ export default function AdminPage() {
   const [config, setConfig] = useState(getStoredConfig);
   const [status, setStatus] = useState("Cargando configuracion");
   const [activeSection, setActiveSection] = useState<SectionId>("inicio");
+  const [editingNewsIndex, setEditingNewsIndex] = useState<number | null>(null);
+  const [previewNewsIndex, setPreviewNewsIndex] = useState<number | null>(null);
 
   const bannerPreview = useMemo(() => config.bannerVideoUrl.trim(), [config.bannerVideoUrl]);
   const bannerYoutubePreview = useMemo(() => getYoutubeBannerPreviewUrl(bannerPreview), [bannerPreview]);
@@ -297,6 +299,46 @@ export default function AdminPage() {
       }
     };
     reader.readAsDataURL(file);
+  }
+
+  function createNewsItem(): NewsItem {
+    return {
+      title: "Nueva noticia",
+      date: new Date().toLocaleDateString("es-AR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      summary: "",
+      body: "",
+      imageUrl: "",
+    };
+  }
+
+  function addNewsItem() {
+    setConfig((current) => ({ ...current, news: [createNewsItem(), ...current.news] }));
+    setEditingNewsIndex(0);
+    setPreviewNewsIndex(null);
+  }
+
+  function duplicateNewsItem(index: number) {
+    const item = config.news[index];
+    setConfig({
+      ...config,
+      news: [
+        ...config.news.slice(0, index + 1),
+        { ...item, title: `${item.title} (copia)` },
+        ...config.news.slice(index + 1),
+      ],
+    });
+    setEditingNewsIndex(index + 1);
+    setPreviewNewsIndex(null);
+  }
+
+  function deleteNewsItem(index: number) {
+    setConfig({ ...config, news: config.news.filter((_, itemIndex) => itemIndex !== index) });
+    setEditingNewsIndex(null);
+    setPreviewNewsIndex(null);
   }
 
   return (
@@ -501,44 +543,86 @@ export default function AdminPage() {
           ) : null}
 
           {activeSection === "noticias" ? (
-            <section className="border border-[#d9d9d4] bg-[#fbfbf8] p-6">
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-black">Noticias</h2>
-                <button className="bg-[#22566b] px-3 py-2 text-sm font-black text-white" onClick={() => setConfig({ ...config, news: [{ title: "", date: "", summary: "", body: "", imageUrl: "" }, ...config.news] })}>
-                  Agregar
+            <section className="bg-[#f7f7f4]">
+              <div className="mb-8 flex items-start justify-between gap-6">
+                <div>
+                  <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-[#ff6b14]">
+                    Gestion
+                  </p>
+                  <h2 className="text-5xl font-light leading-none tracking-[-0.03em] text-[#22566b]">
+                    Noticias
+                  </h2>
+                  <p className="mt-4 max-w-3xl leading-7 text-[#22566b]">
+                    La noticia mas nueva debe quedar arriba. Usa editar para cargar titulo, resumen, cuerpo y foto; luego guarda los cambios.
+                  </p>
+                </div>
+                <button className="bg-[#eef0ef] px-5 py-4 text-sm font-black text-[#22566b]" onClick={addNewsItem}>
+                  + Nuevo
                 </button>
               </div>
-              <div className="mt-5 grid gap-4">
+
+              <div className="grid gap-0">
                 {config.news.map((item, index) => (
-                  <div key={index} className="grid gap-3 border border-[#d9d9d4] p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#ff6b14]">
-                        Noticia {index + 1}
-                      </p>
-                      <button
-                        className="border border-[#d9d9d4] px-3 py-1 text-xs font-black text-[#22566b]"
-                        onClick={() => setConfig({ ...config, news: config.news.filter((_, itemIndex) => itemIndex !== index) })}
-                      >
-                        Eliminar
-                      </button>
+                  <article key={`${item.title}-${index}`} className="border-t border-[#d9d9d4] py-7">
+                    <div className="grid gap-5 lg:grid-cols-[1fr_auto]">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-tight text-[#00823b]">
+                          Publicado - Prioridad {index}
+                        </p>
+                        <h3 className="mt-4 max-w-3xl text-2xl leading-8 text-[#10506b]">
+                          {item.title || "Nueva noticia sin titulo"}
+                        </h3>
+                      </div>
+                      <div className="flex flex-wrap items-start gap-2">
+                        <button className="border border-[#bfc3c2] px-3 py-2 text-base text-[#10506b]" onClick={() => { setPreviewNewsIndex(previewNewsIndex === index ? null : index); setEditingNewsIndex(null); }}>
+                          Vista previa
+                        </button>
+                        <button className="border border-[#bfc3c2] px-3 py-2 text-base text-[#10506b]" onClick={() => { setEditingNewsIndex(editingNewsIndex === index ? null : index); setPreviewNewsIndex(null); }}>
+                          Editar
+                        </button>
+                        <button className="border border-[#bfc3c2] px-3 py-2 text-base text-[#10506b]" onClick={() => duplicateNewsItem(index)}>
+                          Duplicar
+                        </button>
+                        <button className="border border-[#bfc3c2] px-3 py-2 text-base text-[#10506b]" onClick={() => deleteNewsItem(index)}>
+                          Eliminar
+                        </button>
+                      </div>
                     </div>
-                    <Field label="Titulo" value={item.title} onChange={(title) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, title } : newsItem)) })} />
-                    <Field label="Fecha" value={item.date} onChange={(date) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, date } : newsItem)) })} />
-                    <Field label="URL de la foto" value={item.imageUrl} onChange={(imageUrl) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, imageUrl } : newsItem)) })} placeholder="/foto.jpg o https://..." />
-                    <label className="grid gap-2 text-sm font-bold text-[#25211d]">
-                      Subir foto de noticia
-                      <input type="file" accept="image/*" onChange={(event) => updateNewsImageFile(event, index)} />
-                    </label>
-                    {item.imageUrl ? (
-                      <div className="border border-[#d9d9d4] bg-white p-3">
-                        <p className="mb-3 text-sm font-bold text-[#25211d]">Vista previa de la foto</p>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={item.imageUrl} alt="" className="aspect-video w-full max-w-xl object-cover" />
+
+                    {previewNewsIndex === index ? (
+                      <div className="mt-6 max-w-3xl border border-[#d9d9d4] bg-white p-5">
+                        {item.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.imageUrl} alt="" className="mb-5 aspect-video w-full object-cover" />
+                        ) : null}
+                        <time className="text-sm font-black text-[#ff6b14]">{item.date}</time>
+                        <h4 className="mt-3 text-2xl font-black text-[#10506b]">{item.title}</h4>
+                        <p className="mt-3 leading-7 text-[#57536f]">{item.summary}</p>
+                        <div className="mt-4 whitespace-pre-line leading-7 text-[#25211d]">{item.body}</div>
                       </div>
                     ) : null}
-                    <TextAreaField label="Resumen" value={item.summary} rows={3} onChange={(summary) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, summary } : newsItem)) })} />
-                    <TextAreaField label="Cuerpo de noticia" value={item.body} rows={8} onChange={(body) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, body } : newsItem)) })} placeholder="Desarrollo completo de la noticia..." />
-                  </div>
+
+                    {editingNewsIndex === index ? (
+                      <div className="mt-6 grid gap-3 border border-[#d9d9d4] bg-[#fbfbf8] p-4">
+                        <Field label="Titulo" value={item.title} onChange={(title) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, title } : newsItem)) })} />
+                        <Field label="Fecha" value={item.date} onChange={(date) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, date } : newsItem)) })} />
+                        <Field label="URL de la foto" value={item.imageUrl} onChange={(imageUrl) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, imageUrl } : newsItem)) })} placeholder="/foto.jpg o https://..." />
+                        <label className="grid gap-2 text-sm font-bold text-[#25211d]">
+                          Subir foto de noticia
+                          <input type="file" accept="image/*" onChange={(event) => updateNewsImageFile(event, index)} />
+                        </label>
+                        {item.imageUrl ? (
+                          <div className="border border-[#d9d9d4] bg-white p-3">
+                            <p className="mb-3 text-sm font-bold text-[#25211d]">Vista previa de la foto</p>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={item.imageUrl} alt="" className="aspect-video w-full max-w-xl object-cover" />
+                          </div>
+                        ) : null}
+                        <TextAreaField label="Resumen" value={item.summary} rows={3} onChange={(summary) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, summary } : newsItem)) })} />
+                        <TextAreaField label="Cuerpo de noticia" value={item.body} rows={8} onChange={(body) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, body } : newsItem)) })} placeholder="Desarrollo completo de la noticia..." />
+                      </div>
+                    ) : null}
+                  </article>
                 ))}
               </div>
             </section>

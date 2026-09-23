@@ -24,22 +24,19 @@ export default function NoticiasPage() {
           </Link>
         </header>
 
-        <section className="grid gap-5">
+        <section className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {config.news.map((item) => (
             <article key={`${item.date}-${item.title}`} className="overflow-hidden border border-black/10 bg-white">
               {item.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={item.imageUrl} alt="" className="max-h-[460px] w-full object-cover" />
+                <img src={item.imageUrl} alt="" className="aspect-video w-full object-cover" />
               ) : null}
               <div className="p-6">
                 <time className="text-sm font-bold" style={{ color: config.colors.accent }}>
                   {item.date}
                 </time>
-                <h2 className="mt-3 text-2xl font-black">{item.title}</h2>
-                <p className="mt-3 max-w-3xl text-lg leading-8 text-black/70">{item.summary}</p>
-                <div className="mt-5 max-w-4xl whitespace-pre-line leading-8 text-black/75">
-                  {item.body || item.summary}
-                </div>
+                <h2 className="mt-3 text-2xl font-black leading-8">{item.title}</h2>
+                <p className="mt-3 leading-7 text-black/70">{item.summary}</p>
               </div>
             </article>
           ))}
