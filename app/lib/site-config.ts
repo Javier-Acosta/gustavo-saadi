@@ -3,6 +3,7 @@ export type NewsItem = {
   date: string;
   summary: string;
   body: string;
+  imageUrl: string;
 };
 
 export type VideoItem = {
@@ -79,6 +80,7 @@ export const defaultConfig: SiteConfig = {
         "El equipo presento medidas para simplificar tramites y acompanar a comerciantes locales.",
       body:
         "Durante la recorrida se relevaron las principales necesidades del sector comercial y se presentaron propuestas para mejorar la atencion municipal, simplificar tramites y fortalecer la actividad economica local.",
+      imageUrl: "/gustavo-saadi.png",
     },
     {
       title: "Nuevo plan de seguridad barrial",
@@ -87,6 +89,7 @@ export const defaultConfig: SiteConfig = {
         "La propuesta combina iluminacion, prevencion y coordinacion directa con instituciones vecinales.",
       body:
         "El plan propone reforzar la iluminacion, mejorar la coordinacion territorial y trabajar con instituciones vecinales para prevenir conflictos y acercar respuestas concretas a cada barrio.",
+      imageUrl: "/gustavo-saadi.png",
     },
   ],
   socials: [
@@ -108,6 +111,7 @@ export function mergeSiteConfig(config: Partial<SiteConfig> | null | undefined):
     news: (config?.news ?? defaultConfig.news).map((item) => ({
       ...item,
       body: item.body ?? item.summary,
+      imageUrl: item.imageUrl ?? "",
     })),
     socials: config?.socials ?? defaultConfig.socials,
   };

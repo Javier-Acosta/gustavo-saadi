@@ -3,11 +3,26 @@
 import Link from "next/link";
 import { useSiteConfig } from "@/app/lib/use-site-config";
 
-function getYoutubeEmbedUrl(url: string) {
+function getVideoEmbedUrl(url: string) {
+  if (/facebook\.com|fb\.watch/i.test(url)) {
+    const params = new URLSearchParams({
+      href: url,
+      show_text: "false",
+      width: "800",
+    });
+
+    return `https://www.facebook.com/plugins/video.php?${params.toString()}`;
+  }
+
   const match = url.match(
     /(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtube\.com\/shorts\/|youtu\.be\/)([^&?/]+)/,
   );
+
   return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+}
+
+function isEmbeddableVideoUrl(url: string) {
+  return /facebook\.com|fb\.watch|youtube\.com|youtu\.be/i.test(url);
 }
 
 function getYoutubeVideoId(url: string) {
@@ -45,6 +60,7 @@ export default function Home() {
   const bannerVideo = config.bannerVideoUrl.trim();
   const bannerYoutubeUrl = getYoutubeBannerUrl(bannerVideo);
   const footerReel = config.footerReelUrl.trim();
+  const footerReelEmbed = isEmbeddableVideoUrl(footerReel) ? getVideoEmbedUrl(footerReel) : null;
   const footerLogo = config.footerLogoUrl.trim() || config.logoUrl.trim();
   const latestNews = config.news.slice(0, 6);
 
@@ -147,8 +163,9 @@ export default function Home() {
             <article key={`${video.title}-${index}`} className="overflow-hidden rounded border border-black/10 bg-white">
               <iframe
                 className="aspect-video w-full"
-                src={getYoutubeEmbedUrl(video.youtubeUrl)}
+                src={getVideoEmbedUrl(video.youtubeUrl)}
                 title={video.title}
+                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
                 allowFullScreen
               />
               <h3 className="p-4 text-lg font-bold">{video.title}</h3>
@@ -170,10 +187,16 @@ export default function Home() {
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {latestNews.map((item) => (
-              <article key={item.title} className="rounded border border-black/10 p-5">
-                <time className="text-sm font-semibold" style={{ color: config.colors.accent }}>{item.date}</time>
-                <h3 className="mt-3 text-xl font-black">{item.title}</h3>
-                <p className="mt-3 leading-7 text-black/70">{item.summary}</p>
+              <article key={item.title} className="overflow-hidden rounded border border-black/10 bg-white">
+                {item.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.imageUrl} alt="" className="aspect-video w-full object-cover" />
+                ) : null}
+                <div className="p-5">
+                  <time className="text-sm font-semibold" style={{ color: config.colors.accent }}>{item.date}</time>
+                  <h3 className="mt-3 text-xl font-black">{item.title}</h3>
+                  <p className="mt-3 leading-7 text-black/70">{item.summary}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -214,7 +237,15 @@ export default function Home() {
               ))}
             </div>
           </div>
-          {footerReel ? (
+          {footerReelEmbed ? (
+            <iframe
+              className="aspect-video w-full rounded border-0"
+              src={footerReelEmbed}
+              title="Reel destacado"
+              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          ) : footerReel ? (
             <video className="aspect-video w-full rounded object-cover" src={footerReel} controls />
           ) : (
             <div

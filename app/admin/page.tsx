@@ -160,7 +160,7 @@ const cards: { id: Exclude<SectionId, "inicio">; title: string; description: str
   {
     id: "videos",
     title: "Videos destacados",
-    description: "Configura el titulo de la seccion y los enlaces de YouTube.",
+    description: "Configura el titulo de la seccion y enlaces de YouTube o Facebook.",
   },
   {
     id: "banner",
@@ -273,6 +273,27 @@ export default function AdminPage() {
       if (typeof reader.result === "string") {
         setConfig((current) => ({ ...current, [target]: reader.result as string }));
         setStatus("Video cargado para guardar");
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function updateNewsImageFile(event: ChangeEvent<HTMLInputElement>, index: number) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setConfig((current) => ({
+          ...current,
+          news: current.news.map((item, itemIndex) =>
+            itemIndex === index ? { ...item, imageUrl: reader.result as string } : item,
+          ),
+        }));
+        setStatus("Foto cargada para guardar");
       }
     };
     reader.readAsDataURL(file);
@@ -472,7 +493,7 @@ export default function AdminPage() {
                       </button>
                     </div>
                     <Field label="Titulo de la tarjeta" value={video.title} onChange={(title) => setConfig({ ...config, videos: config.videos.map((item, itemIndex) => (itemIndex === index ? { ...item, title } : item)) })} />
-                    <Field label="Enlace de YouTube" value={video.youtubeUrl} onChange={(youtubeUrl) => setConfig({ ...config, videos: config.videos.map((item, itemIndex) => (itemIndex === index ? { ...item, youtubeUrl } : item)) })} placeholder="https://www.youtube.com/watch?v=..." />
+                    <Field label="Enlace de YouTube o Facebook" value={video.youtubeUrl} onChange={(youtubeUrl) => setConfig({ ...config, videos: config.videos.map((item, itemIndex) => (itemIndex === index ? { ...item, youtubeUrl } : item)) })} placeholder="https://www.youtube.com/watch?v=... o https://www.facebook.com/reel/..." />
                   </div>
                 ))}
               </div>
@@ -483,7 +504,7 @@ export default function AdminPage() {
             <section className="border border-[#d9d9d4] bg-[#fbfbf8] p-6">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-2xl font-black">Noticias</h2>
-                <button className="bg-[#22566b] px-3 py-2 text-sm font-black text-white" onClick={() => setConfig({ ...config, news: [{ title: "", date: "", summary: "", body: "" }, ...config.news] })}>
+                <button className="bg-[#22566b] px-3 py-2 text-sm font-black text-white" onClick={() => setConfig({ ...config, news: [{ title: "", date: "", summary: "", body: "", imageUrl: "" }, ...config.news] })}>
                   Agregar
                 </button>
               </div>
@@ -503,6 +524,18 @@ export default function AdminPage() {
                     </div>
                     <Field label="Titulo" value={item.title} onChange={(title) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, title } : newsItem)) })} />
                     <Field label="Fecha" value={item.date} onChange={(date) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, date } : newsItem)) })} />
+                    <Field label="URL de la foto" value={item.imageUrl} onChange={(imageUrl) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, imageUrl } : newsItem)) })} placeholder="/foto.jpg o https://..." />
+                    <label className="grid gap-2 text-sm font-bold text-[#25211d]">
+                      Subir foto de noticia
+                      <input type="file" accept="image/*" onChange={(event) => updateNewsImageFile(event, index)} />
+                    </label>
+                    {item.imageUrl ? (
+                      <div className="border border-[#d9d9d4] bg-white p-3">
+                        <p className="mb-3 text-sm font-bold text-[#25211d]">Vista previa de la foto</p>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={item.imageUrl} alt="" className="aspect-video w-full max-w-xl object-cover" />
+                      </div>
+                    ) : null}
                     <TextAreaField label="Resumen" value={item.summary} rows={3} onChange={(summary) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, summary } : newsItem)) })} />
                     <TextAreaField label="Cuerpo de noticia" value={item.body} rows={8} onChange={(body) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, body } : newsItem)) })} placeholder="Desarrollo completo de la noticia..." />
                   </div>
@@ -518,7 +551,7 @@ export default function AdminPage() {
                 <Field label="URL del logo del pie" value={config.footerLogoUrl} onChange={(footerLogoUrl) => setConfig({ ...config, footerLogoUrl })} placeholder="/gustavo-saadi-logo.svg o https://..." />
                 <Field label="Titulo del pie" value={config.footerTitle} onChange={(footerTitle) => setConfig({ ...config, footerTitle })} />
                 <Field label="Texto del pie" value={config.footerText} onChange={(footerText) => setConfig({ ...config, footerText })} />
-                <Field label="URL del reel de pie" value={config.footerReelUrl} onChange={(footerReelUrl) => setConfig({ ...config, footerReelUrl })} />
+                <Field label="URL del reel de pie" value={config.footerReelUrl} onChange={(footerReelUrl) => setConfig({ ...config, footerReelUrl })} placeholder="MP4, YouTube o Facebook" />
                 {footerLogoPreview ? (
                   <div className="border border-[#d9d9d4] p-4">
                     <p className="mb-3 text-sm font-bold text-[#25211d]">Vista previa del logo del pie</p>
