@@ -27,6 +27,36 @@ function getYoutubeEmbedUrl(url: string) {
   return match ? `https://www.youtube.com/embed/${match[1]}` : url;
 }
 
+function getYoutubeVideoId(url: string) {
+  return (
+    url.match(
+      /(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtube\.com\/shorts\/|youtu\.be\/)([^&?/]+)/,
+    )?.[1] ?? null
+  );
+}
+
+function getYoutubeBannerUrl(url: string) {
+  const videoId = getYoutubeVideoId(url);
+  if (!videoId) {
+    return null;
+  }
+
+  const params = new URLSearchParams({
+    autoplay: "1",
+    mute: "1",
+    loop: "1",
+    playlist: videoId,
+    controls: "0",
+    modestbranding: "1",
+    rel: "0",
+    playsinline: "1",
+    fs: "0",
+    disablekb: "1",
+  });
+
+  return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
+}
+
 export default function Home() {
   const [config, setConfig] = useState(getStoredConfig);
 
@@ -60,6 +90,7 @@ export default function Home() {
   }, []);
 
   const bannerVideo = config.bannerVideoUrl.trim();
+  const bannerYoutubeUrl = getYoutubeBannerUrl(bannerVideo);
   const footerReel = config.footerReelUrl.trim();
   const footerLogo = config.footerLogoUrl.trim() || config.logoUrl.trim();
 
@@ -103,7 +134,15 @@ export default function Home() {
       </header>
 
       <section className="relative min-h-[92svh] overflow-hidden bg-[#173b2f] pt-16 text-white">
-        {bannerVideo ? (
+        {bannerYoutubeUrl ? (
+          <iframe
+            className="pointer-events-none absolute left-1/2 top-1/2 aspect-video h-[120%] min-h-full w-auto min-w-full -translate-x-1/2 -translate-y-1/2 scale-125 border-0 md:h-auto md:w-[120%]"
+            src={bannerYoutubeUrl}
+            title="Video institucional"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen={false}
+          />
+        ) : bannerVideo ? (
           <video
             className="absolute inset-0 h-full w-full object-cover"
             src={bannerVideo}

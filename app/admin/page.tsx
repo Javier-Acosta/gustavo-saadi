@@ -74,6 +74,34 @@ function ColorField({
   );
 }
 
+function getYoutubeVideoId(url: string) {
+  return (
+    url.match(
+      /(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtube\.com\/shorts\/|youtu\.be\/)([^&?/]+)/,
+    )?.[1] ?? null
+  );
+}
+
+function getYoutubeBannerPreviewUrl(url: string) {
+  const videoId = getYoutubeVideoId(url);
+  if (!videoId) {
+    return null;
+  }
+
+  const params = new URLSearchParams({
+    autoplay: "1",
+    mute: "1",
+    loop: "1",
+    playlist: videoId,
+    controls: "0",
+    modestbranding: "1",
+    rel: "0",
+    playsinline: "1",
+  });
+
+  return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
+}
+
 type SectionId =
   | "inicio"
   | "configuracion"
@@ -145,6 +173,7 @@ export default function AdminPage() {
   const [activeSection, setActiveSection] = useState<SectionId>("inicio");
 
   const bannerPreview = useMemo(() => config.bannerVideoUrl.trim(), [config.bannerVideoUrl]);
+  const bannerYoutubePreview = useMemo(() => getYoutubeBannerPreviewUrl(bannerPreview), [bannerPreview]);
   const footerLogoPreview = config.footerLogoUrl.trim() || config.logoUrl.trim();
   const activeTitle =
     activeSection === "inicio"
@@ -354,15 +383,24 @@ export default function AdminPage() {
             <section className="border border-[#d9d9d4] bg-[#fbfbf8] p-6">
               <h2 className="text-2xl font-black">Banner</h2>
               <p className="mt-3 max-w-2xl leading-7 text-[#57536f]">
-                Usa un video corto horizontal, idealmente MP4, sin audio obligatorio y de 8 a 20 segundos. Se va a reproducir automaticamente en loop como fondo de portada.
+                Usa un video corto horizontal. Puede ser una URL de YouTube o un MP4. Se va a reproducir automaticamente, sin sonido y en loop como fondo de portada.
               </p>
               <div className="mt-5 grid gap-4">
-                <Field label="URL del video del banner" value={config.bannerVideoUrl} onChange={(bannerVideoUrl) => setConfig({ ...config, bannerVideoUrl })} placeholder="/banner.mp4 o https://.../video.mp4" />
+                <Field label="URL del video del banner" value={config.bannerVideoUrl} onChange={(bannerVideoUrl) => setConfig({ ...config, bannerVideoUrl })} placeholder="https://www.youtube.com/watch?v=... o /banner.mp4" />
                 <label className="grid gap-2 text-sm font-bold text-[#25211d]">
                   Subir video corto para banner
                   <input type="file" accept="video/*" onChange={(event) => updateVideoFile(event, "bannerVideoUrl")} />
                 </label>
-                {bannerPreview ? (
+                {bannerYoutubePreview ? (
+                  <div className="max-w-3xl border border-[#d9d9d4] bg-[#101f1c] p-3">
+                    <iframe
+                      className="aspect-video w-full border-0"
+                      src={bannerYoutubePreview}
+                      title="Vista previa del video de banner"
+                      allow="autoplay; encrypted-media; picture-in-picture"
+                    />
+                  </div>
+                ) : bannerPreview ? (
                   <div className="max-w-3xl border border-[#d9d9d4] bg-[#101f1c] p-3">
                     <video className="aspect-video w-full object-cover" src={bannerPreview} controls muted loop playsInline poster="/gustavo-saadi.png" />
                   </div>
