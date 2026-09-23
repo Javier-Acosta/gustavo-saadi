@@ -24,6 +24,8 @@ export type SiteConfig = {
   footerText: string;
   bannerVideoUrl: string;
   footerReelUrl: string;
+  videoSectionEyebrow: string;
+  videoSectionTitle: string;
   colors: {
     pageBackground: string;
     text: string;
@@ -47,6 +49,8 @@ export const defaultConfig: SiteConfig = {
   footerText: "Catamarca con trabajo, cercania e igualdad de oportunidades.",
   bannerVideoUrl: "",
   footerReelUrl: "",
+  videoSectionEyebrow: "Galeria",
+  videoSectionTitle: "Videos destacados",
   colors: {
     pageBackground: "#f7f3ea",
     text: "#1d1b18",

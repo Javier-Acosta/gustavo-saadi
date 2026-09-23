@@ -79,7 +79,7 @@ type SectionId =
   | "configuracion"
   | "banner"
   | "noticias"
-  | "reels"
+  | "videos"
   | "pie"
   | "invitados"
   | "agenda"
@@ -88,8 +88,8 @@ type SectionId =
 const navItems: { id: Exclude<SectionId, "inicio">; label: string }[] = [
   { id: "configuracion", label: "Configuracion" },
   { id: "banner", label: "Banner" },
+  { id: "videos", label: "Videos destacados" },
   { id: "noticias", label: "Noticias" },
-  { id: "reels", label: "Reels" },
   { id: "pie", label: "Pie de pagina" },
   { id: "invitados", label: "Invitados" },
   { id: "agenda", label: "Agenda" },
@@ -103,9 +103,9 @@ const cards: { id: Exclude<SectionId, "inicio">; title: string; description: str
     description: "Logo, colores, nombre, slogan y redes sociales.",
   },
   {
-    id: "reels",
-    title: "Reels de Instagram",
-    description: "Carga enlaces y administra videos destacados.",
+    id: "videos",
+    title: "Videos destacados",
+    description: "Configura el titulo de la seccion y los enlaces de YouTube.",
   },
   {
     id: "banner",
@@ -375,19 +375,39 @@ export default function AdminPage() {
             </section>
           ) : null}
 
-          {activeSection === "reels" ? (
+          {activeSection === "videos" ? (
             <section className="border border-[#d9d9d4] bg-[#fbfbf8] p-6">
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-black">Reels y videos</h2>
+                <div>
+                  <h2 className="text-2xl font-black">Videos destacados</h2>
+                  <p className="mt-2 max-w-2xl leading-7 text-[#57536f]">
+                    Esta configuracion controla la seccion publica que muestra el encabezado Galeria y los videos embebidos.
+                  </p>
+                </div>
                 <button className="bg-[#22566b] px-3 py-2 text-sm font-black text-white" onClick={() => setConfig({ ...config, videos: [...config.videos, { title: "", youtubeUrl: "" }] })}>
                   Agregar
                 </button>
               </div>
+              <div className="mt-6 grid gap-4 border border-[#d9d9d4] bg-white p-4 md:grid-cols-2">
+                <Field label="Etiqueta superior" value={config.videoSectionEyebrow} onChange={(videoSectionEyebrow) => setConfig({ ...config, videoSectionEyebrow })} placeholder="Galeria" />
+                <Field label="Titulo de la seccion" value={config.videoSectionTitle} onChange={(videoSectionTitle) => setConfig({ ...config, videoSectionTitle })} placeholder="Videos destacados" />
+              </div>
               <div className="mt-5 grid gap-4">
                 {config.videos.map((video, index) => (
                   <div key={index} className="grid gap-3 border border-[#d9d9d4] p-4">
-                    <Field label="Titulo" value={video.title} onChange={(title) => setConfig({ ...config, videos: config.videos.map((item, itemIndex) => (itemIndex === index ? { ...item, title } : item)) })} />
-                    <Field label="Enlace de YouTube" value={video.youtubeUrl} onChange={(youtubeUrl) => setConfig({ ...config, videos: config.videos.map((item, itemIndex) => (itemIndex === index ? { ...item, youtubeUrl } : item)) })} />
+                    <div className="flex items-start justify-between gap-4">
+                      <p className="text-sm font-black uppercase tracking-[0.18em] text-[#ff6b14]">
+                        Video {index + 1}
+                      </p>
+                      <button
+                        className="border border-[#d9d9d4] px-3 py-1 text-xs font-black text-[#22566b]"
+                        onClick={() => setConfig({ ...config, videos: config.videos.filter((_, itemIndex) => itemIndex !== index) })}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                    <Field label="Titulo de la tarjeta" value={video.title} onChange={(title) => setConfig({ ...config, videos: config.videos.map((item, itemIndex) => (itemIndex === index ? { ...item, title } : item)) })} />
+                    <Field label="Enlace de YouTube" value={video.youtubeUrl} onChange={(youtubeUrl) => setConfig({ ...config, videos: config.videos.map((item, itemIndex) => (itemIndex === index ? { ...item, youtubeUrl } : item)) })} placeholder="https://www.youtube.com/watch?v=..." />
                   </div>
                 ))}
               </div>

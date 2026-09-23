@@ -21,7 +21,9 @@ function getStoredConfig() {
 }
 
 function getYoutubeEmbedUrl(url: string) {
-  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?]+)/);
+  const match = url.match(
+    /(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtube\.com\/shorts\/|youtu\.be\/)([^&?/]+)/,
+  );
   return match ? `https://www.youtube.com/embed/${match[1]}` : url;
 }
 
@@ -142,14 +144,14 @@ export default function Home() {
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.18em]" style={{ color: config.colors.accent }}>
-              Galeria
+              {config.videoSectionEyebrow}
             </p>
-            <h2 className="mt-2 text-3xl font-black">Videos destacados</h2>
+            <h2 className="mt-2 text-3xl font-black">{config.videoSectionTitle}</h2>
           </div>
         </div>
         <div className="grid gap-5 md:grid-cols-2">
-          {config.videos.map((video) => (
-            <article key={video.title} className="overflow-hidden rounded border border-black/10 bg-white">
+          {config.videos.map((video, index) => (
+            <article key={`${video.title}-${index}`} className="overflow-hidden rounded border border-black/10 bg-white">
               <iframe
                 className="aspect-video w-full"
                 src={getYoutubeEmbedUrl(video.youtubeUrl)}
