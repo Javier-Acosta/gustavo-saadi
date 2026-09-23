@@ -17,6 +17,13 @@ export type SocialLink = {
   logo: string;
 };
 
+export type InstagramReel = {
+  title: string;
+  url: string;
+  imageUrl: string;
+  dateText: string;
+};
+
 export type SiteConfig = {
   candidateName: string;
   slogan: string;
@@ -26,6 +33,8 @@ export type SiteConfig = {
   footerText: string;
   bannerVideoUrl: string;
   footerReelUrl: string;
+  instagramSectionEyebrow: string;
+  instagramSectionTitle: string;
   videoSectionEyebrow: string;
   videoSectionTitle: string;
   colors: {
@@ -39,6 +48,7 @@ export type SiteConfig = {
   };
   videos: VideoItem[];
   news: NewsItem[];
+  instagramReels: InstagramReel[];
   socials: SocialLink[];
 };
 
@@ -51,6 +61,8 @@ export const defaultConfig: SiteConfig = {
   footerText: "Catamarca con trabajo, cercania e igualdad de oportunidades.",
   bannerVideoUrl: "",
   footerReelUrl: "",
+  instagramSectionEyebrow: "Momentos de la gestion",
+  instagramSectionTitle: "En Instagram",
   videoSectionEyebrow: "Galeria",
   videoSectionTitle: "Videos destacados",
   colors: {
@@ -92,6 +104,14 @@ export const defaultConfig: SiteConfig = {
       imageUrl: "/gustavo-saadi.png",
     },
   ],
+  instagramReels: [
+    {
+      title: "Veni al encuentro de las palabras",
+      url: "https://www.instagram.com/",
+      imageUrl: "/gustavo-saadi.png",
+      dateText: "",
+    },
+  ],
   socials: [
     { name: "Instagram", url: "https://instagram.com", logo: "IG" },
     { name: "Facebook", url: "https://facebook.com", logo: "FB" },
@@ -112,6 +132,13 @@ export function mergeSiteConfig(config: Partial<SiteConfig> | null | undefined):
       ...item,
       body: item.body ?? item.summary,
       imageUrl: item.imageUrl ?? "",
+    })),
+    instagramReels: (config?.instagramReels ?? defaultConfig.instagramReels).map((item) => ({
+      ...item,
+      title: item.title ?? "",
+      url: item.url ?? "",
+      imageUrl: item.imageUrl ?? "",
+      dateText: item.dateText ?? "",
     })),
     socials: config?.socials ?? defaultConfig.socials,
   };

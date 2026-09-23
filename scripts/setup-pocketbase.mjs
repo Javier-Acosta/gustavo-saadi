@@ -9,6 +9,8 @@ const defaultConfig = {
   logoUrl: "/gustavo-saadi-logo.svg",
   bannerVideoUrl: "",
   footerReelUrl: "",
+  instagramSectionEyebrow: "Momentos de la gestion",
+  instagramSectionTitle: "En Instagram",
   videos: [
     {
       title: "Mensaje de campana",
@@ -37,6 +39,14 @@ const defaultConfig = {
       body:
         "El plan propone reforzar la iluminacion, mejorar la coordinacion territorial y trabajar con instituciones vecinales para prevenir conflictos y acercar respuestas concretas a cada barrio.",
       imageUrl: "/gustavo-saadi.png",
+    },
+  ],
+  instagramReels: [
+    {
+      title: "Veni al encuentro de las palabras",
+      url: "https://www.instagram.com/",
+      imageUrl: "/gustavo-saadi.png",
+      dateText: "",
     },
   ],
   socials: [

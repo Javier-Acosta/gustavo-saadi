@@ -2,7 +2,7 @@
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { defaultConfig, mergeSiteConfig, NewsItem, SiteConfig } from "@/app/lib/site-config";
+import { defaultConfig, InstagramReel, mergeSiteConfig, NewsItem, SiteConfig } from "@/app/lib/site-config";
 
 function getStoredConfig() {
   if (typeof window === "undefined") {
@@ -135,6 +135,7 @@ type SectionId =
   | "banner"
   | "noticias"
   | "videos"
+  | "instagram"
   | "pie"
   | "invitados"
   | "agenda"
@@ -144,6 +145,7 @@ const navItems: { id: Exclude<SectionId, "inicio">; label: string }[] = [
   { id: "configuracion", label: "Configuracion" },
   { id: "banner", label: "Banner" },
   { id: "videos", label: "Videos destacados" },
+  { id: "instagram", label: "Reels Instagram" },
   { id: "noticias", label: "Noticias" },
   { id: "pie", label: "Pie de pagina" },
   { id: "invitados", label: "Invitados" },
@@ -161,6 +163,11 @@ const cards: { id: Exclude<SectionId, "inicio">; title: string; description: str
     id: "videos",
     title: "Videos destacados",
     description: "Configura el titulo de la seccion y enlaces de YouTube o Facebook.",
+  },
+  {
+    id: "instagram",
+    title: "Reels de Instagram",
+    description: "Administra tarjetas verticales para mostrar en el pie de pagina.",
   },
   {
     id: "banner",
@@ -200,6 +207,8 @@ export default function AdminPage() {
   const [activeSection, setActiveSection] = useState<SectionId>("inicio");
   const [editingNewsIndex, setEditingNewsIndex] = useState<number | null>(null);
   const [previewNewsIndex, setPreviewNewsIndex] = useState<number | null>(null);
+  const [editingReelIndex, setEditingReelIndex] = useState<number | null>(null);
+  const [previewReelIndex, setPreviewReelIndex] = useState<number | null>(null);
 
   const bannerPreview = useMemo(() => config.bannerVideoUrl.trim(), [config.bannerVideoUrl]);
   const bannerYoutubePreview = useMemo(() => getYoutubeBannerPreviewUrl(bannerPreview), [bannerPreview]);
@@ -301,6 +310,27 @@ export default function AdminPage() {
     reader.readAsDataURL(file);
   }
 
+  function updateReelImageFile(event: ChangeEvent<HTMLInputElement>, index: number) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setConfig((current) => ({
+          ...current,
+          instagramReels: current.instagramReels.map((item, itemIndex) =>
+            itemIndex === index ? { ...item, imageUrl: reader.result as string } : item,
+          ),
+        }));
+        setStatus("Portada de reel cargada para guardar");
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
   function createNewsItem(): NewsItem {
     return {
       title: "Nueva noticia",
@@ -339,6 +369,41 @@ export default function AdminPage() {
     setConfig({ ...config, news: config.news.filter((_, itemIndex) => itemIndex !== index) });
     setEditingNewsIndex(null);
     setPreviewNewsIndex(null);
+  }
+
+  function createReelItem(): InstagramReel {
+    return {
+      title: "Nuevo reel de Instagram",
+      url: "https://www.instagram.com/",
+      imageUrl: "",
+      dateText: "",
+    };
+  }
+
+  function addReelItem() {
+    setConfig((current) => ({ ...current, instagramReels: [createReelItem(), ...current.instagramReels] }));
+    setEditingReelIndex(0);
+    setPreviewReelIndex(null);
+  }
+
+  function duplicateReelItem(index: number) {
+    const item = config.instagramReels[index];
+    setConfig({
+      ...config,
+      instagramReels: [
+        ...config.instagramReels.slice(0, index + 1),
+        { ...item, title: `${item.title} (copia)` },
+        ...config.instagramReels.slice(index + 1),
+      ],
+    });
+    setEditingReelIndex(index + 1);
+    setPreviewReelIndex(null);
+  }
+
+  function deleteReelItem(index: number) {
+    setConfig({ ...config, instagramReels: config.instagramReels.filter((_, itemIndex) => itemIndex !== index) });
+    setEditingReelIndex(null);
+    setPreviewReelIndex(null);
   }
 
   return (
@@ -620,6 +685,93 @@ export default function AdminPage() {
                         ) : null}
                         <TextAreaField label="Resumen" value={item.summary} rows={3} onChange={(summary) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, summary } : newsItem)) })} />
                         <TextAreaField label="Cuerpo de noticia" value={item.body} rows={8} onChange={(body) => setConfig({ ...config, news: config.news.map((newsItem, itemIndex) => (itemIndex === index ? { ...newsItem, body } : newsItem)) })} placeholder="Desarrollo completo de la noticia..." />
+                      </div>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {activeSection === "instagram" ? (
+            <section className="bg-[#f7f7f4]">
+              <div className="mb-8 flex items-start justify-between gap-6">
+                <div>
+                  <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-[#ff6b14]">
+                    Gestion
+                  </p>
+                  <h2 className="text-5xl font-light leading-none tracking-[-0.03em] text-[#22566b]">
+                    Reels de Instagram
+                  </h2>
+                  <p className="mt-4 max-w-3xl leading-7 text-[#22566b]">
+                    La prioridad mas alta aparece primero. Carga una portada vertical, titulo y enlace al reel.
+                  </p>
+                </div>
+                <button className="bg-[#eef0ef] px-5 py-4 text-sm font-black text-[#22566b]" onClick={addReelItem}>
+                  + Nuevo
+                </button>
+              </div>
+
+              <div className="mb-8 grid gap-4 border border-[#d9d9d4] bg-white p-4 md:grid-cols-2">
+                <Field label="Etiqueta superior" value={config.instagramSectionEyebrow} onChange={(instagramSectionEyebrow) => setConfig({ ...config, instagramSectionEyebrow })} />
+                <Field label="Titulo de la seccion" value={config.instagramSectionTitle} onChange={(instagramSectionTitle) => setConfig({ ...config, instagramSectionTitle })} />
+              </div>
+
+              <div className="grid gap-0">
+                {config.instagramReels.map((item, index) => (
+                  <article key={`${item.title}-${index}`} className="border-t border-[#d9d9d4] py-7">
+                    <div className="grid gap-5 lg:grid-cols-[1fr_auto]">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-tight text-[#00823b]">
+                          Publicado - Prioridad {index}
+                        </p>
+                        <h3 className="mt-4 max-w-3xl text-2xl leading-8 text-[#10506b]">
+                          {item.title || "Nuevo reel sin titulo"}
+                        </h3>
+                      </div>
+                      <div className="flex flex-wrap items-start gap-2">
+                        <button className="border border-[#bfc3c2] px-3 py-2 text-base text-[#10506b]" onClick={() => { setPreviewReelIndex(previewReelIndex === index ? null : index); setEditingReelIndex(null); }}>
+                          Vista previa
+                        </button>
+                        <button className="border border-[#bfc3c2] px-3 py-2 text-base text-[#10506b]" onClick={() => { setEditingReelIndex(editingReelIndex === index ? null : index); setPreviewReelIndex(null); }}>
+                          Editar
+                        </button>
+                        <button className="border border-[#bfc3c2] px-3 py-2 text-base text-[#10506b]" onClick={() => duplicateReelItem(index)}>
+                          Duplicar
+                        </button>
+                        <button className="border border-[#bfc3c2] px-3 py-2 text-base text-[#10506b]" onClick={() => deleteReelItem(index)}>
+                          Eliminar
+                        </button>
+                      </div>
+                    </div>
+
+                    {previewReelIndex === index ? (
+                      <div className="mt-6 w-[260px] overflow-hidden rounded-lg bg-black text-white">
+                        <div className="relative aspect-[9/16]">
+                          {item.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={item.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                          ) : null}
+                          <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,0.82)_0%,rgba(0,0,0,0.12)_58%,rgba(0,0,0,0.15)_100%)]" />
+                          <div className="absolute inset-x-0 bottom-0 p-4">
+                            {item.dateText ? <p className="mb-3 text-3xl font-black leading-none">{item.dateText}</p> : null}
+                            <h4 className="text-lg font-black">{item.title}</h4>
+                            <p className="mt-3 text-xs font-bold">Ver reel en Instagram</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {editingReelIndex === index ? (
+                      <div className="mt-6 grid gap-3 border border-[#d9d9d4] bg-[#fbfbf8] p-4">
+                        <Field label="Titulo" value={item.title} onChange={(title) => setConfig({ ...config, instagramReels: config.instagramReels.map((reel, itemIndex) => (itemIndex === index ? { ...reel, title } : reel)) })} />
+                        <Field label="Texto grande opcional" value={item.dateText} onChange={(dateText) => setConfig({ ...config, instagramReels: config.instagramReels.map((reel, itemIndex) => (itemIndex === index ? { ...reel, dateText } : reel)) })} placeholder="Del 7 al 11 de octubre" />
+                        <Field label="URL del reel de Instagram" value={item.url} onChange={(url) => setConfig({ ...config, instagramReels: config.instagramReels.map((reel, itemIndex) => (itemIndex === index ? { ...reel, url } : reel)) })} placeholder="https://www.instagram.com/reel/..." />
+                        <Field label="URL de portada vertical" value={item.imageUrl} onChange={(imageUrl) => setConfig({ ...config, instagramReels: config.instagramReels.map((reel, itemIndex) => (itemIndex === index ? { ...reel, imageUrl } : reel)) })} placeholder="/foto.jpg o https://..." />
+                        <label className="grid gap-2 text-sm font-bold text-[#25211d]">
+                          Subir portada vertical
+                          <input type="file" accept="image/*" onChange={(event) => updateReelImageFile(event, index)} />
+                        </label>
                       </div>
                     ) : null}
                   </article>

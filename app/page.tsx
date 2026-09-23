@@ -208,6 +208,44 @@ export default function Home() {
         </div>
       </section>
 
+      {config.instagramReels.length > 0 ? (
+        <section className="bg-white px-5 py-16">
+          <div className="mx-auto max-w-6xl">
+            <p className="text-sm font-black uppercase tracking-[0.24em]" style={{ color: "#e000c7" }}>
+              {config.instagramSectionEyebrow}
+            </p>
+            <h2 className="mt-3 text-5xl font-light tracking-[-0.03em] text-[#2e6472] md:text-6xl">
+              {config.instagramSectionTitle}
+            </h2>
+            <div className="mt-12 flex gap-5 overflow-x-auto pb-4">
+              {config.instagramReels.map((reel, index) => (
+                <a
+                  key={`${reel.title}-${index}`}
+                  href={reel.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group relative aspect-[9/16] w-[260px] shrink-0 overflow-hidden rounded-lg bg-black text-white shadow-sm"
+                >
+                  {reel.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={reel.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover transition group-hover:scale-105" />
+                  ) : null}
+                  <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,0.82)_0%,rgba(0,0,0,0.12)_58%,rgba(0,0,0,0.15)_100%)]" />
+                  <span className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-black/55 text-sm">
+                    ▶
+                  </span>
+                  <div className="absolute inset-x-0 bottom-0 p-4">
+                    {reel.dateText ? <p className="mb-3 text-3xl font-black leading-none">{reel.dateText}</p> : null}
+                    <h3 className="text-lg font-black leading-6">{reel.title}</h3>
+                    <p className="mt-3 text-xs font-bold">Ver reel en Instagram ↗</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <footer
         id="contacto"
         className="px-5 py-12"
